@@ -1,6 +1,11 @@
-FROM php:8.2-apache
-WORKDIR /var/www/html
-COPY . .
-RUN docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable pdo_mysql
-EXPOSE 80
-CMD ["apache2-foreground"]
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+EXPOSE 8080
+CMD ["java","-jar","app.jar"]
