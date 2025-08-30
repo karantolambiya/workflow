@@ -1,22 +1,25 @@
-FROM python:3.9-slim-buster
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY package*.json ./
+
+RUN npm install
 
 COPY . .
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
+RUN npm run build
 
-# requirements.txt content:
-# flask
-# gunicorn
+FROM node:18-alpine AS production
 
-# app.py content:
-# from flask import Flask
-# app = Flask(__name__)
+WORKDIR /app
 
-# @app.route("/")
-# def hello():
-#     return "Hello, World!"
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package*.json ./
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s CMD curl -f http://localhost:3000/health || exit 1
+
+CMD ["node", "./dist/index.js"]
