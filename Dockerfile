@@ -1,18 +1,27 @@
-FROM ubuntu:22.04
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    curl \
-    libmicrohttpd-dev
+FROM python:3.9-slim-buster
 
 WORKDIR /app
 
-COPY . /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-RUN mkdir build && cd build && cmake .. && make
+COPY . .
 
-EXPOSE 8080
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
 
-CMD ["./build/hello_world"]
+
+# Create a dummy requirements.txt for completeness if you don't have one
+# Create an app.py for a basic Flask app
+
+# requirements.txt content:
+# Flask
+# gunicorn
+
+# app.py content:
+# from flask import Flask
+
+# app = Flask(__name__)
+
+# @app.route('/')
+# def hello_world():
+#     return 'Hello, World!'
