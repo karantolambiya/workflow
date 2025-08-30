@@ -1,1 +1,0 @@
-{"dockerfile": "FROM ubuntu:latest\nRUN apt-get update && apt-get install -y build-essential cmake git wget\nRUN wget -qO- https://github.com/crow/Crow/archive/v1.0.tar.gz | tar xzvf -\nWORKDIR /Crow-1.0\nRUN mkdir build && cd build && cmake .. && make && make install\nWORKDIR /app\nCOPY . .\nRUN mkdir build && cd build && cmake .. && make\nCMD [\"/app/build/hello_world\"]"}
