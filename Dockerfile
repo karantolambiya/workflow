@@ -3,13 +3,24 @@ FROM python:3.9-slim-buster
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "app:app"]
+CMD ["python", "app.py"]
 
-# Create a dummy requirements.txt if one doesn't exist
-RUN touch requirements.txt
-# Create a dummy app.py if one doesn't exist.
-RUN echo "from flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef hello_world():\n    return 'Hello, World!'" > app.py
+
+# Example app.py
+# from flask import Flask
+
+# app = Flask(__name__)
+
+# @app.route('/')
+# def hello_world():
+#     return 'Hello, World!'
+
+# if __name__ == '__main__':
+#     app.run(debug=True, host='0.0.0.0')
+
+# Example requirements.txt
+# Flask
