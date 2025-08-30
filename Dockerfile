@@ -1,18 +1,22 @@
-FROM ubuntu:22.04
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    libcrow-dev \
-    git \
-    curl
+FROM python:3.9-slim-buster
 
 WORKDIR /app
 
-COPY . /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir build && cd build && cmake .. && make
+COPY . .
 
-EXPOSE 8080
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
 
-CMD ["./build/hello_world"]
+# requirements.txt content:
+# flask
+# gunicorn
+
+# app.py content:
+# from flask import Flask
+# app = Flask(__name__)
+
+# @app.route("/")
+# def hello():
+#     return "Hello, World!"
