@@ -1,6 +1,10 @@
-FROM php:8.2-apache
-WORKDIR /var/www/html
+FROM python:3.9-slim-buster
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY . .
-RUN docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable pdo_mysql
-EXPOSE 80
-CMD ["apache2-foreground"]
+
+CMD ["python", "main.py"]
