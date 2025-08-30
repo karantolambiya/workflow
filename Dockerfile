@@ -1,60 +1,16 @@
-FROM gcc:latest
+FROM python:3.9-slim-buster
 
 WORKDIR /app
 
-COPY . /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN apt-get update && apt-get install -y libmicrohttpd-dev
+COPY . .
 
-RUN gcc -o main main.c -lmicrohttpd
+CMD ["gunicorn", "--workers=3", "--bind=0.0.0.0:8000", "app:app"]
 
-EXPOSE 8080
+# Create a dummy requirements.txt if one doesn't exist
+RUN if [ ! -f requirements.txt ]; then touch requirements.txt && echo "flask==2.2.2" >> requirements.txt && echo "gunicorn==20.1.0" >> requirements.txt; fi
 
-CMD ["./main"]
-
-
-
-# Please create a file named main.c with the following content:
-
-
-#include <microhttpd.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#define PORT 8080
-
-static int answer_to_connection (void *cls, struct MHD_Connection *connection,
-                      const char *url, const char *method,
-                      const char *version, const char *upload_data,
-                      size_t *upload_data_size, void **con_cls)
-{
-  const char *page = "<html><body>Hello, World!</body></html>";
-  struct MHD_Response *response;
-  int ret;
-
-  response =
-    MHD_create_response_from_buffer (strlen (page), (void *) page, 
-				     MHD_RESPMEM_PERSISTENT);
-  ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
-  MHD_destroy_response (response);
-
-  return ret;
-}
-
-
-int main ()
-{
-  struct MHD_Daemon *daemon;
-
-  daemon = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, PORT, NULL, NULL,
-                             &answer_to_connection, NULL, MHD_OPTION_END);
-  if (NULL == daemon)
-    return 1;
-
-  getchar ();
-
-  MHD_stop_daemon (daemon);
-
-  return 0;
-}
+# Create a dummy app.py if one doesn't exist
+RUN if [ ! -f app.py ]; then touch app.py && echo "from flask import Flask" >> app.py && echo "app = Flask(__name__)" >> app.py && echo "@app.route('/')" >> app.py && echo "def hello_world():" >> app.py && echo "    return 'Hello, World!'" >> app.py; fi
