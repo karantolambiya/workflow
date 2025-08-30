@@ -1,0 +1,281 @@
+{
+  "name": "Karan workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "functionCode": "return [{\n  repo_owner: $json[\"repo_owner\"],\n  repo_name: $json[\"repo_name\"],\n  file_path: $json[\"file_path\"],\n  branch: $json[\"branch\"] || \"main\",\n  language: $json[\"language\"],\n  dockerfile_content: $json[\"dockerfile_content\"],\n  encoded_content: Buffer.from($json[\"dockerfile_content\"] || \"\").toString(\"base64\")\n}];"
+      },
+      "id": "161c3c71-97a7-4414-a763-d6e18c4273d3",
+      "name": "Encode Base64",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "47fd3bd9-da18-429c-a5b1-18b7c0e04cd2",
+              "name": "repo_owner",
+              "value": "karantolambiya",
+              "type": "string"
+            },
+            {
+              "id": "f41fbf14-32b5-4ff3-81cc-9ad5ab4b2bb2",
+              "name": "repo_name",
+              "value": "workflow",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        -128
+      ],
+      "id": "b7b9acff-1664-4f01-bb02-c490d79282ba",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to each\nconst results = [];\n\nfor (const item of $input.all()) {\n  console.log(item.json); // Just for debugging in execution log\n\n  results.push({\n    json: {\n      ...item.json,\n      myNewField: \"someValue\"  // Add your new field here\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        -128
+      ],
+      "id": "170d0d37-1d9b-4e2c-97eb-aa190747a8ea",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "karantolambiya",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "workflow",
+          "mode": "name"
+        },
+        "filePath": "Dockerfile",
+        "additionalParameters": {}
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1680,
+        -128
+      ],
+      "id": "09e5aaa9-7a48-4ac4-a75d-18c21f322dd4",
+      "name": "Get a file",
+      "webhookId": "2406c879-9a6c-47e1-a62c-9fe10cd1b66f",
+      "credentials": {
+        "githubApi": {
+          "id": "1JvaieKL1h1ETZGK",
+          "name": "GitHub account 7"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "karantolambiya",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "workflow",
+          "mode": "name"
+        },
+        "filePath": "Dockerfile",
+        "fileContent": "={{ $('Message a model').item.json.content.parts[0].text }}",
+        "commitMessage": "updated language dockerfile"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        -128
+      ],
+      "id": "007fa6fb-539a-46dc-9fe1-b24148c2a67a",
+      "name": "Edit a file",
+      "webhookId": "43c0a7c5-d66c-4519-8b44-462c2495b4e8",
+      "credentials": {
+        "githubApi": {
+          "id": "1JvaieKL1h1ETZGK",
+          "name": "GitHub account 7"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-1.5-pro-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-1.5-pro-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert DevOps engineer who writes Dockerfiles. Your task is to generate a Dockerfile based on the provided language and requirements. Respond with only the Dockerfile code, with no additional text or explanations. Do not include any markdown syntax like ```.\nLanguage: {{ $json.language }}\nRequirements: {{ $json.requirements }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -128
+      ],
+      "id": "615ff50f-9368-473c-84b8-36878101f308",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "5cocfOvhQnsLTKvV",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -128
+      ],
+      "id": "6ce826f4-4a7b-4435-acfe-7bcec52e03ed",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"language\": \"Node.js\",\n  \"requirements\": \"An Express.js microservice that uses `npm` to install packages. The application should listen on port 3000 and have a health check endpoint at `/health`. The Dockerfile should be a multi-stage build to minimize image size, starting with a base image of `node:18-alpine`.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        -128
+      ],
+      "id": "503e9eb7-17a0-4559-926e-4f32e7b98c34",
+      "name": "Edit Fields1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Encode Base64": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Encode Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Edit a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit a file": {
+      "main": [
+        []
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "630a38a3-4375-4baa-aa6d-b7fc23e9a4e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4ecbbdbfb94471c959a4d4167e184b449e4b30a87758ab841d998061968a2697"
+  },
+  "id": "YTs7XtqWYIAxMhCN",
+  "tags": []
+}
