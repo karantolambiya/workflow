@@ -1,12 +1,13 @@
-FROM python:3.9-slim-buster
+FROM node:16
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY package*.json ./
+
+RUN npm install
 
 COPY . .
 
-CMD ["gunicorn", "--workers=3", "--bind=0.0.0.0:8000", "app:app"]
+EXPOSE 3000
 
-EXPOSE 8000
+CMD ["node", "index.js"]
